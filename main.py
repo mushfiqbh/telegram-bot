@@ -5,25 +5,8 @@ import re
 API_TOKEN = "6490263020:AAEF8s0e5Or12ykfibVRU9XWMpCQAiGpEX4"
 base_url = "https://api.telegram.org/bot"+API_TOKEN
 
-prevCommand = ""
-active = False
-gsheets = {"/bot_qna": "https://docs.google.com/spreadsheets/d/1SnpCguD2r9wx174A7uytZEJeWanzHwR6wIyonX9TWtw",\
-"/batch62": "https://docs.google.com/spreadsheets/d/1YCmOAcLj3E2Rrav-ZQ0czcMz3w_QyIhfdXh8IXc9dAQ"}
 
-
-def send_docs(props):
-  url = "https://drive.google.com/uc?export=download&id=1KJoKb64zT5I1hZDiROmyCcZzQYZFVhv6"
-  
-
-  data = {
-        "chat_id": props['chat_id'],
-        "document": url,
-        "caption": "pdf"
-  }
-  
-  requests.post(base_url + '/sendDocument', data=data)
-  
-  
+gsheet = "https://docs.google.com/spreadsheets/d/1SnpCguD2r9wx174A7uytZEJeWanzHwR6wIyonX9TWtw"
 
 
 def convert_gsheet_to_tsv(url):
@@ -33,9 +16,9 @@ def convert_gsheet_to_tsv(url):
     (f"gid={m.group(3)}&" if m.group(3) else "") + "format=tsv"
   return re.sub(pattern, replacement, url)
 
-
-def fetch_gsheet(question,  column, sheet):
-  url = convert_gsheet_to_tsv(gsheets[sheet])
+ 
+def fetch_gsheet(question,  column):
+  url = convert_gsheet_to_tsv(gsheet)
   df = pd.read_csv(url, sep="\t")
 
   answer = df.loc[df[column].astype(str).str.lower().str.contains(question.lower())]
@@ -86,7 +69,7 @@ def help(props):
 
 
 def chatbot(message, props):
-  res = fetch_gsheet(message,  'Question', '/bot_qna')
+  res = fetch_gsheet(message,  'Question')
   reply = res[1] if res else "Sorry, I could not understand you."
   auto_reply(reply, props)
 
@@ -97,8 +80,6 @@ def terminal(command, props):
       start(props)
     elif command == "/help":
       help(props)
-    elif command == "/docs":
-      send_docs(props)
     else:
       auto_reply("Unknown Command /help", props)
   else:

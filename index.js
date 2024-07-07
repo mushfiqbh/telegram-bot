@@ -1,44 +1,38 @@
 const express = require("express");
-const expressApp = express();
 const axios = require("axios");
 const path = require("path");
-const port = process.env.PORT || 3000;
-expressApp.use(express.static("static"));
-expressApp.use(express.json());
+const { Telegraf } = require("telegraf");
 require("dotenv").config();
 
-const { Telegraf } = require("telegraf");
+// Creating Server
+const App = express();
+const PORT = process.env.PORT || 3000;
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
-
-expressApp.get("/", (req, res) => {
+App.use(express.static("static"));
+App.use(express.json());
+App.get("/", (req, res) => {
   res.sendFile(path.join(__dirname + "/index.html"));
 });
+
+// Bot Functions
+const bot = new Telegraf(process.env.BOT_TOKEN);
+
 bot.command("start", (ctx) => {
   console.log(ctx.from.id);
-  bot.telegram.sendMessage(
-    ctx.chat.id,
-    "Hello there! Welcome to the Code Capsules telegram bot.\nI respond to /ethereum. Please try it m",
-    {}
-  );
+  const reply = "Welcome to LU Bot.\nFor all commands click /help.";
+  bot.telegram.sendMessage(ctx.chat.id, reply, {});
 });
 
-bot.command("ethereum", (ctx) => {
-  var rate;
-  axios
-    .get(
-      `https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd`
-    )
-    .then((response) => {
-      rate = response.data.ethereum;
-      const message = `Hello, today the ethereum price is ${rate.usd}USD`;
-      bot.telegram.sendMessage(ctx.chat.id, message, {});
-    });
+bot.command("help", (ctx) => {
+  //   axios.get(url).then((response) => {
+  //     rate = response.data.ethereum;
+  //   });
+  const reply = `Hello, today the ethereum price`;
+  bot.telegram.sendMessage(ctx.chat.id, reply, {});
 });
 
-// expressApp.use(bot.webhookCallback('/secret-path'))
+// Start the server
+// App.use(bot.webhookCallback('/secret-path'))
 // bot.telegram.setWebhook('<YOUR_CAPSULE_URL>/secret-path')
-
 bot.launch();
-
-// expressApp.listen(port, () => console.log(`Listening on ${port}`));
+// App.listen(PORT, () => console.log(`Server is running on ${PORT}`));
